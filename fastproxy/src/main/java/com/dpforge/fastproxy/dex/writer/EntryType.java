@@ -22,7 +22,7 @@ enum EntryType {
     TYPE_ENCODED_ARRAY_ITEM(0x2005),
     TYPE_ANNOTATIONS_DIRECTORY_ITEM(0x2006);
 
-    public int value;
+    final int value;
 
     EntryType(final int value) {
         this.value = value;
