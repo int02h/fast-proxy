@@ -57,8 +57,7 @@ public class DexWriter {
     }
 
     private void writeInternal(final Dex dex, final File file) throws IOException {
-        //noinspection ResultOfMethodCallIgnored
-        file.delete();
+        prepareFile(file);
 
         try (OutputStream os = new FileOutputStream(file)) {
             try (DexOutputStream stream = new DexOutputStream()) {
@@ -93,6 +92,20 @@ public class DexWriter {
                 os.write(stream.toByteArray());
             }
             os.flush();
+        }
+    }
+
+    private void prepareFile(final File file) throws IOException {
+        if (file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
+        }
+
+        final File parent = file.getParentFile();
+        if (parent != null && !parent.exists()) {
+            if (!parent.mkdirs()) {
+                throw new IOException("Cannot create parent for file " + file);
+            }
         }
     }
 
@@ -202,7 +215,7 @@ public class DexWriter {
     private int writeTypeListData(final List<DexType> typeList, final DexOutputStream stream) {
         int offset = align4Bytes(stream);
 
-        map.put(EntryType.TYPE_TYPE_LIST, typeList.size(), offset);
+        map.put(EntryType.TYPE_TYPE_LIST, 1, offset);
 
         stream.writeInt(typeList.size());
         for (DexType argType : typeList) {

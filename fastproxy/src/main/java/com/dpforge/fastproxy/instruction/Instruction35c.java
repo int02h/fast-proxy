@@ -30,6 +30,17 @@ public abstract class Instruction35c extends DexCodeInstruction {
         e = f = g = 0;
     }
 
+    Instruction35c(final int c, final int d, final int e, final int f, final int op, final DexItem item) {
+        this.op = op;
+        this.item = item;
+        this.a = 4;
+        this.c = c;
+        this.d = d;
+        this.e = e;
+        this.f = f;
+        g = 0;
+    }
+
     @Override
     public final int[] getByteCode() {
         return new int[]{
