@@ -34,17 +34,13 @@ class SortingHelper {
                 if (majorOrder != 0) {
                     return majorOrder;
                 }
-                int argsOrder = Integer.compare(p1.argumentTypes.size(), p2.argumentTypes.size());
-                if (argsOrder != 0) {
-                    return argsOrder;
-                }
                 for (int i = 0; i < p1.argumentTypes.size(); i++) {
                     int cmp = Integer.compare(p1.argumentTypes.get(i).index, p2.argumentTypes.get(i).index);
                     if (cmp != 0) {
                         return cmp;
                     }
                 }
-                return 0;
+                return Integer.compare(p1.argumentTypes.size(), p2.argumentTypes.size());
             }
         }));
     }
