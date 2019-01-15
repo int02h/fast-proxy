@@ -19,11 +19,11 @@ public class MainActivity extends AppCompatActivity {
 
         Foo foo = ProxyBuilder.createProxy(getApplicationContext(), Foo.class, new InvocationHandler() {
             @Override
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            public Object invoke(final Object proxy, final Method method, final Object[] args) {
                 return Log.d("_@_", "Method '" + method + "' called with args: " + Arrays.toString(args));
             }
         });
         foo.bar();
-        foo.zzz();
+        foo.zzz( true, "Hello World!", -5);
     }
 }
