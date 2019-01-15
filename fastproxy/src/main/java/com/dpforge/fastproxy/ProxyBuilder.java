@@ -13,11 +13,14 @@ import com.dpforge.fastproxy.dex.DexProto;
 import com.dpforge.fastproxy.dex.DexType;
 import com.dpforge.fastproxy.dex.writer.DexWriter;
 import com.dpforge.fastproxy.instruction.AGetObject;
+import com.dpforge.fastproxy.instruction.APutObject;
 import com.dpforge.fastproxy.instruction.Const4;
 import com.dpforge.fastproxy.instruction.IGetObject;
 import com.dpforge.fastproxy.instruction.IPutObject;
 import com.dpforge.fastproxy.instruction.InvokeDirect;
 import com.dpforge.fastproxy.instruction.InvokeInterface;
+import com.dpforge.fastproxy.instruction.InvokeStatic;
+import com.dpforge.fastproxy.instruction.MoveResultObject;
 import com.dpforge.fastproxy.instruction.NewArray;
 import com.dpforge.fastproxy.instruction.ReturnVoid;
 
@@ -130,16 +133,20 @@ public class ProxyBuilder<T> {
                         dexBuilder.addType(Object[].class)
                 )));
 
+        final int argCount = method.getParameterTypes().length;
         final DexMethod dexMethod = dexBuilder.addMethod(proxyType, dexBuilder.addString(method.getName()), getDexProto(method));
 
         final int rHandler = 0;
-        final int rMethod = 1, rMethodArray = 1;
-        final int rArgArray = 2, rIndex = 2;
-        final int rArrSize = 3;
-        final int rThis = 4;
-        final int registersSize = rThis + method.getParameterTypes().length + 1;
-        final int insSize = method.getParameterTypes().length + 1;
-        proxyClassBuilder.virtualMethod(dexMethod, AccessFlags.fromValue(AccessFlags.ACC_PUBLIC), DexCode.newBuilder()
+        final int rMethod = 1;
+        final int rMethodArray = 2;
+        final int rIndex = 3;
+        final int rArgArray = 4;
+        final int rArrSize = 5;
+        final int rBoxedArg = 6;
+        final int rThis = 7;
+        final int registersSize = rThis + argCount + 1;
+        final int insSize = argCount + 1;
+        final DexCode.Builder builder = DexCode.newBuilder()
                 .registersSize(registersSize)
                 .insSize(insSize)
                 .outsSize(4)
@@ -148,10 +155,45 @@ public class ProxyBuilder<T> {
                 .instruction(new Const4(rIndex, methodIndex))
                 .instruction(new AGetObject(rMethod, rMethodArray, rIndex))
                 .instruction(new Const4(rArrSize, method.getParameterTypes().length))
-                .instruction(new NewArray(rArgArray, rArrSize, dexBuilder.addType(Object[].class)))
-                .instruction(new InvokeInterface(rHandler, rThis, rMethod, rArgArray, invokeMethod))
-                .instruction(new ReturnVoid())
-                .build());
+                .instruction(new NewArray(rArgArray, rArrSize, dexBuilder.addType(Object[].class)));
+
+        for (int i = 0; i < method.getParameterTypes().length; i++) {
+            final int rArg = registersSize - argCount + i;
+            final Class<?> argType = method.getParameterTypes()[i];
+            builder.instruction(new Const4(rIndex, i));
+            if (argType.isPrimitive()) {
+                builder.instruction(new InvokeStatic(rArg, getValueOfMethod(argType)))
+                        .instruction(new MoveResultObject(rBoxedArg))
+                        .instruction(new APutObject(rBoxedArg, rArgArray, rIndex));
+            } else {
+                builder.instruction(new APutObject(rArg, rArgArray, rIndex));
+            }
+        }
+
+        builder.instruction(new InvokeInterface(rHandler, rThis, rMethod, rArgArray, invokeMethod))
+                .instruction(new ReturnVoid());
+
+        proxyClassBuilder.virtualMethod(dexMethod, AccessFlags.fromValue(AccessFlags.ACC_PUBLIC), builder.build());
+    }
+
+    private DexMethod getValueOfMethod(final Class<?> argType) {
+        DexType boxedClass;
+        DexType primitiveClass;
+
+        if (int.class == argType) {
+            boxedClass = dexBuilder.addType(Integer.class);
+            primitiveClass = dexBuilder.addType(int.class);
+        } else if (boolean.class == argType) {
+            boxedClass = dexBuilder.addType(Boolean.class);
+            primitiveClass = dexBuilder.addType(boolean.class);
+        } else {
+            throw new UnsupportedOperationException("Unsupported primitive type " + argType);
+        }
+
+        return dexBuilder.addMethod(boxedClass,
+                dexBuilder.addString("valueOf"),
+                dexBuilder.addProto(boxedClass,
+                        Collections.singletonList(primitiveClass)));
     }
 
     private DexProto getDexProto(final Method method) {
