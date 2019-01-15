@@ -34,7 +34,8 @@ class SortingHelper {
                 if (majorOrder != 0) {
                     return majorOrder;
                 }
-                for (int i = 0; i < p1.argumentTypes.size(); i++) {
+                int n = Math.min(p1.argumentTypes.size(), p2.argumentTypes.size());
+                for (int i = 0; i < n; i++) {
                     int cmp = Integer.compare(p1.argumentTypes.get(i).index, p2.argumentTypes.get(i).index);
                     if (cmp != 0) {
                         return cmp;
