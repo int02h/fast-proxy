@@ -24,6 +24,7 @@ dependencies {
     implementation "com.android.support:appcompat-v7:${versions.supportLibrary}"
     implementation project(':fastproxy')
 
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     testImplementation "junit:junit:${versions.junit}"
     androidTestImplementation "com.android.support.test:runner:${versions.testRunner}"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:${versions.espresso}"
