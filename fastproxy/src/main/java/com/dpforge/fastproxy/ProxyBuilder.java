@@ -186,6 +186,9 @@ public class ProxyBuilder<T> {
         } else if (boolean.class == argType) {
             boxedClass = dexBuilder.addType(Boolean.class);
             primitiveClass = dexBuilder.addType(boolean.class);
+        } else if (float.class == argType) {
+            boxedClass = dexBuilder.addType(Float.class);
+            primitiveClass = dexBuilder.addType(float.class);
         } else {
             throw new UnsupportedOperationException("Unsupported primitive type " + argType);
         }
