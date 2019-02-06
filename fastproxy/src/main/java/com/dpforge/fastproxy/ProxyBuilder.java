@@ -12,17 +12,6 @@ import com.dpforge.fastproxy.dex.DexMethod;
 import com.dpforge.fastproxy.dex.DexProto;
 import com.dpforge.fastproxy.dex.DexType;
 import com.dpforge.fastproxy.dex.writer.DexWriter;
-import com.dpforge.fastproxy.instruction.AGetObject;
-import com.dpforge.fastproxy.instruction.APutObject;
-import com.dpforge.fastproxy.instruction.Const4;
-import com.dpforge.fastproxy.instruction.IGetObject;
-import com.dpforge.fastproxy.instruction.IPutObject;
-import com.dpforge.fastproxy.instruction.InvokeDirect;
-import com.dpforge.fastproxy.instruction.InvokeInterface;
-import com.dpforge.fastproxy.instruction.InvokeStatic;
-import com.dpforge.fastproxy.instruction.MoveResultObject;
-import com.dpforge.fastproxy.instruction.NewArray;
-import com.dpforge.fastproxy.instruction.ReturnVoid;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +24,18 @@ import java.util.Collections;
 import java.util.List;
 
 import dalvik.system.DexClassLoader;
+
+import static com.dpforge.fastproxy.instruction.DexInstructions.agetObject;
+import static com.dpforge.fastproxy.instruction.DexInstructions.aputObject;
+import static com.dpforge.fastproxy.instruction.DexInstructions.const4;
+import static com.dpforge.fastproxy.instruction.DexInstructions.igetObject;
+import static com.dpforge.fastproxy.instruction.DexInstructions.invokeDirect;
+import static com.dpforge.fastproxy.instruction.DexInstructions.invokeInterface;
+import static com.dpforge.fastproxy.instruction.DexInstructions.invokeStatic;
+import static com.dpforge.fastproxy.instruction.DexInstructions.iputObject;
+import static com.dpforge.fastproxy.instruction.DexInstructions.moveResultObject;
+import static com.dpforge.fastproxy.instruction.DexInstructions.newArray;
+import static com.dpforge.fastproxy.instruction.DexInstructions.returnVoid;
 
 public class ProxyBuilder<T> {
 
@@ -107,10 +108,10 @@ public class ProxyBuilder<T> {
                 .registersSize(3)
                 .insSize(3)
                 .outsSize(1)
-                .instruction(new InvokeDirect(0, objectCtr))
-                .instruction(new IPutObject(0, 1, handlerField))
-                .instruction(new IPutObject(0, 2, methodsField))
-                .instruction(new ReturnVoid())
+                .instruction(invokeDirect(0, objectCtr))
+                .instruction(iputObject(1, 0, handlerField))
+                .instruction(iputObject(2, 0, methodsField))
+                .instruction(returnVoid())
                 .build());
     }
 
@@ -150,28 +151,28 @@ public class ProxyBuilder<T> {
                 .registersSize(registersSize)
                 .insSize(insSize)
                 .outsSize(4)
-                .instruction(new IGetObject(rThis, rHandler, handlerField))
-                .instruction(new IGetObject(rThis, rMethodArray, methodsField))
-                .instruction(new Const4(rIndex, methodIndex))
-                .instruction(new AGetObject(rMethod, rMethodArray, rIndex))
-                .instruction(new Const4(rArrSize, method.getParameterTypes().length))
-                .instruction(new NewArray(rArgArray, rArrSize, dexBuilder.addType(Object[].class)));
+                .instruction(igetObject(rHandler, rThis, handlerField))
+                .instruction(igetObject(rMethodArray, rThis, methodsField))
+                .instruction(const4(rIndex, methodIndex))
+                .instruction(agetObject(rMethod, rMethodArray, rIndex))
+                .instruction(const4(rArrSize, method.getParameterTypes().length))
+                .instruction(newArray(rArgArray, rArrSize, dexBuilder.addType(Object[].class)));
 
         for (int i = 0; i < method.getParameterTypes().length; i++) {
             final int rArg = registersSize - argCount + i;
             final Class<?> argType = method.getParameterTypes()[i];
-            builder.instruction(new Const4(rIndex, i));
+            builder.instruction(const4(rIndex, i));
             if (argType.isPrimitive()) {
-                builder.instruction(new InvokeStatic(rArg, getValueOfMethod(argType)))
-                        .instruction(new MoveResultObject(rBoxedArg))
-                        .instruction(new APutObject(rBoxedArg, rArgArray, rIndex));
+                builder.instruction(invokeStatic(rArg, getValueOfMethod(argType)))
+                        .instruction(moveResultObject(rBoxedArg))
+                        .instruction(aputObject(rBoxedArg, rArgArray, rIndex));
             } else {
-                builder.instruction(new APutObject(rArg, rArgArray, rIndex));
+                builder.instruction(aputObject(rArg, rArgArray, rIndex));
             }
         }
 
-        builder.instruction(new InvokeInterface(rHandler, rThis, rMethod, rArgArray, invokeMethod))
-                .instruction(new ReturnVoid());
+        builder.instruction(invokeInterface(rHandler, rThis, rMethod, rArgArray, invokeMethod))
+                .instruction(returnVoid());
 
         proxyClassBuilder.virtualMethod(dexMethod, AccessFlags.fromValue(AccessFlags.ACC_PUBLIC), builder.build());
     }
