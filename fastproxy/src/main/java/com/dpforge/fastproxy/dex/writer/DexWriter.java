@@ -1,6 +1,5 @@
 package com.dpforge.fastproxy.dex.writer;
 
-import com.android.dex.Mutf8;
 import com.dpforge.fastproxy.dex.Dex;
 import com.dpforge.fastproxy.dex.DexClassDef;
 import com.dpforge.fastproxy.dex.DexCode;
@@ -17,7 +16,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UTFDataFormatException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -176,7 +174,7 @@ public class DexWriter {
         }
     }
 
-    private int[] writeStringsData(final List<DexString> strings, final DexOutputStream stream) throws UTFDataFormatException {
+    private int[] writeStringsData(final List<DexString> strings, final DexOutputStream stream) throws IOException {
         final int[] offsets = new int[strings.size()];
         map.put(EntryType.TYPE_STRING_DATA_ITEM, strings.size(), stream.getPosition());
 
