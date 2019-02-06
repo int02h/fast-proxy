@@ -11,7 +11,7 @@ import com.dpforge.fastproxy.dex.DexMethodDef;
 import com.dpforge.fastproxy.dex.DexProto;
 import com.dpforge.fastproxy.dex.DexString;
 import com.dpforge.fastproxy.dex.DexType;
-import com.dpforge.fastproxy.instruction.DexCodeInstruction;
+import com.dpforge.fastproxy.instruction.DexInstruction;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -348,12 +348,12 @@ public class DexWriter {
         stream.writeInt(0); // debug_info_off
 
         int count = 0;
-        for (DexCodeInstruction instruction : code.instructions) {
+        for (DexInstruction instruction : code.instructions) {
             count += instruction.getByteCode().length;
         }
 
         stream.writeInt(count);
-        for (DexCodeInstruction instruction : code.instructions) {
+        for (DexInstruction instruction : code.instructions) {
             for (int s : instruction.getByteCode()) {
                 stream.writeShort(s);
             }

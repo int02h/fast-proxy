@@ -1,6 +1,6 @@
 package com.dpforge.fastproxy.dex;
 
-import com.dpforge.fastproxy.instruction.DexCodeInstruction;
+import com.dpforge.fastproxy.instruction.DexInstruction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ public class DexCode {
 
     public final int outsSize;
 
-    public final List<DexCodeInstruction> instructions;
+    public final List<DexInstruction> instructions;
 
     private DexCode(final Builder builder) {
         registersSize = builder.registersSize;
@@ -30,7 +30,7 @@ public class DexCode {
         private int registersSize;
         private int insSize;
         private int outsSize;
-        private final List<DexCodeInstruction> instructions = new ArrayList<>();
+        private final List<DexInstruction> instructions = new ArrayList<>();
 
         private Builder() {
         }
@@ -50,7 +50,7 @@ public class DexCode {
             return this;
         }
 
-        public Builder instruction(final DexCodeInstruction instruction) {
+        public Builder instruction(final DexInstruction instruction) {
             this.instructions.add(instruction);
             return this;
         }
